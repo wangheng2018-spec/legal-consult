@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f2740">
+<meta name="description" content="填写案情经过、证据情况与诉求，自动生成结构化法律分析（法律关系、救济路径、时效提示、证据清单、风险提示、行动清单）。">
+<title>法律咨询 · 案情评估</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:#f5f7fa;color:#1c2733;
+  font:16px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif}
+body{padding-bottom:40px}
+#wrap{max-width:760px;margin:0 auto;padding:0 14px}
+header{background:linear-gradient(135deg,#0f2740,#1d4e79);color:#fff;padding:20px 14px 18px;margin-bottom:14px}
+header h1{margin:0;font-size:20px;letter-spacing:.5px}
+header p{margin:6px 0 0;font-size:13px;opacity:.85}
+.card{background:#fff;border:1px solid #e3e8ef;border-radius:14px;padding:14px;margin:12px 0;box-shadow:0 1px 2px rgba(16,32,56,.04)}
+.card h2{font-size:16px;margin:0 0 10px;padding-left:10px;border-left:4px solid #1d4e79}
+label{display:block;font-size:14px;color:#41506b;margin:12px 0 5px;font-weight:600}
+label .req{color:#d33;margin-left:4px}
+input[type=text],input[type=date],input[type=number],select,textarea{
+  width:100%;font:inherit;padding:10px 11px;border:1px solid #d3dbe6;border-radius:10px;background:#fbfdff;color:#1c2733}
+textarea{min-height:150px;line-height:1.7;resize:vertical}
+select{background:#fff}
+.hint{font-size:12.5px;color:#77869d;margin-top:4px}
+.chk{display:flex;align-items:flex-start;gap:8px;margin:7px 0;font-weight:400;color:#28374d}
+.chk input{margin-top:4px;width:18px;height:18px;flex:0 0 auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+.btn{display:block;width:100%;padding:14px;border:0;border-radius:12px;background:#1d4e79;color:#fff;font:inherit;font-weight:700;margin-top:16px}
+.btn.alt{background:#eef3f9;color:#1d4e79;border:1px solid #cfdcea;font-weight:600}
+.btn-row{display:flex;gap:10px;margin-top:10px}
+.btn-row .btn{margin-top:0}
+.notice{background:#fff8e6;border:1px solid #f0dfae;border-radius:12px;padding:12px;font-size:13.5px;color:#6b5520}
+.notice b{color:#8a6a12}
+.report h3{font-size:15px;margin:18px 0 8px;padding-left:9px;border-left:4px solid #2f6f4f;color:#14372a}
+.report p,.report li{font-size:15px}
+.report ul{padding-left:22px;margin:6px 0}
+.report table{width:100%;border-collapse:collapse;margin:8px 0;font-size:14px}
+.report th,.report td{border:1px solid #e3e8ef;padding:7px 9px;text-align:left;vertical-align:top}
+.report th{background:#f2f6fa;color:#31465f;font-weight:600;width:32%}
+.ok{color:#16803c;font-weight:700}
+.miss{color:#c0392b;font-weight:700}
+.warn{background:#fff3f3;border:1px solid #f3cfcf;border-radius:10px;padding:10px;color:#8c2b2b;font-size:14px}
+.tagline{font-size:12.5px;color:#77869d;text-align:center;margin:18px 0 0}
+footer{font-size:12.5px;color:#77869d;padding:16px 4px;line-height:1.7}
+@media print{
+  header,.noprint{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;border:0;padding:0}
+  .report h3{page-break-after:avoid}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>法律咨询 · 案情评估</h1>
+  <p>填写事情经过、证据与诉求，自动生成结构化法律分析 · 资料仅存于你的手机</p>
+</header>
+
+<div id="wrap">
+
+  <div class="card noprint">
+    <div class="notice">
+      <b>请先阅读：</b>本工具依据你填写的信息，按常见法律规则生成<b>结构化参考分析</b>，<b>不构成正式法律意见</b>，
+      也不替代执业律师。事实认定、证据采信与法律适用最终以办案机关或法院的判断为准。
+      若案情复杂、涉及重大利益或已被起诉、立案，请尽快委托律师当面咨询。
+      <div class="chk" style="margin-top:10px">
+        <input type="checkbox" id="agree"><label for="agree" style="margin:0;font-weight:600;color:#6b5520">我已阅读并理解上述说明</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card noprint">
+    <h2>一、基本情况</h2>
+    <label>你是谁<span class="req">*</span></label>
+    <select id="who">
+      <option value="个人（本人）">个人（本人）</option>
+      <option value="个人（代他人）">个人（代他人）</option>
+      <option value="公司/个体工商户">公司/个体工商户</option>
+    </select>
+
+    <label>案件类型<span class="req">*</span></label>
+    <select id="ctype"></select>
+
+    <label>争议金额（元，可留空）</label>
+    <input type="number" id="amount" placeholder="例如 50000" inputmode="numeric">
+  </div>
+
+  <div class="card noprint">
+    <h2>二、事情经过</h2>
+    <label>请按时间顺序写清楚：什么时候、谁做了什么、发生了什么后果<span class="req">*</span></label>
+    <textarea id="story" placeholder="示例：2024年3月，我与某某公司签订装修合同，约定工期60天。我按约定支付了首期款5万元。对方5月停工至今，多次催告未复工，已造成我无法按期入住……"></textarea>
+    <div class="hint">写得越具体越好：时间、金额、对方承诺、你做过什么、对方如何回应。涉及隐私可隐去姓名，用「甲」「乙」代替。</div>
+
+    <div class="grid2">
+      <div>
+        <label>纠纷发生（或最后一次沟通）时间</label>
+        <input type="date" id="when">
+      </div>
+      <div>
+        <label>是否收到过书面通知/决定书</label>
+        <select id="written">
+          <option value="否">否</option>
+          <option value="是">是（如催告函、解除通知、处罚决定书、判决书等）</option>
+        </select>
+      </div>
+    </div>
+
+    <label>对方是谁</label>
+    <select id="opp">
+      <option value="个人">个人</option>
+      <option value="公司/单位">公司/单位</option>
+      <option value="不清楚">不清楚</option>
+    </select>
+
+    <label>目前进展</label>
+    <select id="stage">
+      <option value="还没处理">还没处理</option>
+      <option value="协商中">协商中</option>
+      <option value="已投诉/已举报">已投诉/已举报</option>
+      <option value="已申请仲裁/复议">已申请仲裁/复议</option>
+      <option value="已起诉/已立案">已起诉/已立案</option>
+      <option value="已判决/已裁决">已判决/已裁决</option>
+    </select>
+  </div>
+
+  <div class="card noprint">
+    <h2>三、证据情况</h2>
+    <div class="hint" style="margin-bottom:8px">勾选你手上已有的材料（没写到的可补充在下方）</div>
+    <div id="evbox"></div>
+    <label>其他证据或说明</label>
+    <textarea id="evother" style="min-height:80px" placeholder="例如：有微信聊天记录但对方已撤回部分消息；有邻居口头承诺但不愿作证……"></textarea>
+  </div>
+
+  <div class="card noprint">
+    <h2>四、你的诉求</h2>
+    <select id="want">
+      <option value="要回钱/赔偿损失">要回钱/赔偿损失</option>
+      <option value="要求对方继续履行/交付">要求对方继续履行/交付</option>
+      <option value="要求解除合同/退还款项">要求解除合同/退还款项</option>
+      <option value="要求确认权利/权属">要求确认权利/权属</option>
+      <option value="要求对方停止侵害/排除妨碍">要求对方停止侵害/排除妨碍</option>
+      <option value="要求追究刑事责任/报案">要求追究刑事责任/报案</option>
+      <option value="其他">其他</option>
+    </select>
+    <label>补充说明（可选）</label>
+    <textarea id="wantmore" style="min-height:70px" placeholder="例如：我希望能先协商，协商不成再考虑起诉；我最担心的是时间拖太久……"></textarea>
+
+    <button class="btn" id="go">生成法律分析</button>
+    <button class="btn alt" id="clear">清空重填</button>
+    <div class="hint" style="text-align:center">所有内容只保存在你的手机浏览器里，不会上传到任何服务器</div>
+  </div>
+
+  <div id="result"></div>
+
+  <footer>
+    <b>免责声明</b>：本页面为自助式信息整理工具，输出内容系依据填写信息按常见法律规则生成的参考框架，
+    不构成法律意见书，不替代执业律师的专业判断，不作为诉讼、仲裁、报案等任何程序的依据。
+    法律、司法解释与地方裁判口径会变化，具体案件请咨询执业律师。<br>
+    <b>隐私</b>：本页面无后端、不收集、不上传任何信息；数据仅存于你的设备（localStorage）。清除浏览器数据即删除。
+    <p class="tagline">— 自助法律咨询工具 · 供参考 —</p>
+  </footer>
+</div>
+
+<script>
+/* ============ 案件类型知识库（规则引擎） ============ */
+var TYPES = [
+  { k:"labor",    n:"劳动争议（欠薪/辞退/工伤/社保）" },
+  { k:"loan",     n:"民间借贷/欠款不还" },
+  { k:"contract", n:"合同纠纷（买卖/装修/服务/供货）" },
+  { k:"traffic",  n:"交通事故/人身损害" },
+  { k:"tort",     n:"侵权纠纷（名誉/隐私/财产损坏等）" },
+  { k:"family",   n:"婚姻家事（离婚/抚养/财产/继承）" },
+  { k:"house",    n:"房屋买卖/租赁纠纷" },
+  { k:"company",  n:"公司与股权纠纷" },
+  { k:"criminal", n:"刑事相关（被害/被调查）" },
+  { k:"admin",    n:"行政处罚/行政许可/政府信息公开" },
+  { k:"other",    n:"其他/暂不确定" }
+];
+
+/* 通用证据项 */
+var EVIDENCE = [
+  { k:"contract",  n:"书面合同/协议/订单/报价单" },
+  { k:"pay",       n:"转账记录/付款凭证/收据/发票" },
+  { k:"chat",      n:"微信/短信等聊天记录" },
+  { k:"mail",      n:"邮件/书面函件（含催告函）" },
+  { k:"record",    n:"录音/录像/监控" },
+  { k:"witness",   n:"证人（愿出面作证）" },
+  { k:"notice",    n:"对方出具的通知/决定书/承诺书" },
+  { k:"ident",     n:"对方身份信息（姓名、身份证号、公司名称、地址）" },
+  { k:"report",    n:"报警记录/受案回执/事故认定书" },
+  { k:"medical",   n:"病历/诊断证明/鉴定意见" },
+  { k:"govdoc",    n:"行政机关文书（处罚决定、答复、审批文件）" },
+  { k:"judge",     n:"已有裁决/判决/调解书" }
+];
+
+/* 各类型：案由、法律关系、路径、期限、必备证据、风险、行动 */
+var KB = {
+  labor: {
+    cause: "劳动合同纠纷／追索劳动报酬纠纷／工伤保险待遇纠纷",
+    relation: "你与用人单位之间的劳动关系（或事实劳动关系）。核心是：用工事实、工资标准、解除过程是否合法、是否存在工伤。",
+    paths: [
+      ["协商", "先书面催告（微信+EMS各一份），固定对方拒付或拖延的证据。"],
+      ["劳动监察投诉", "向用人单位所在地劳动保障监察大队投诉，欠薪类可快速介入；适合事实清楚、金额不大的欠薪。"],
+      ["劳动仲裁（主路径）", "向劳动合同履行地或用人单位所在地劳动人事争议仲裁委员会申请仲裁，这是诉讼的前置程序。"],
+      ["诉讼", "对仲裁裁决不服，可在收到裁决书之日起15日内向法院起诉。"],
+      ["工伤特别路径", "先申请工伤认定（用人单位30日内，单位不申请的，职工1年内可自行申请），认定后做劳动能力鉴定，再主张待遇。"]
+    ],
+    limits: [
+      ["劳动仲裁时效：1年", "自知道或应当知道权利被侵害之日起1年；劳动关系存续期间因拖欠劳动报酬发生争议，不受1年限制，但劳动关系终止的，应自终止之日起1年内提出。"],
+      ["工伤认定申请：单位30日／职工1年", "自事故伤害发生之日起算。"],
+      ["不服仲裁裁决起诉：15日", "自收到仲裁裁决书之日起算。"]
+    ],
+    evidence: [
+      ["contract", "劳动合同（没有也可用其他证据证明劳动关系）", true],
+      ["pay", "工资流水、工资条、考勤记录", true],
+      ["chat", "关于辞退、欠薪、加班安排的聊天记录", true],
+      ["record", "谈话录音（重点：对方承认欠薪/辞退事实）", false],
+      ["notice", "辞退通知、调岗通知、书面催告", true],
+      ["ident", "用人单位工商登记信息（可在国家企业信用信息公示系统查询）", true],
+      ["medical", "工伤类需病历、诊断证明、鉴定意见", false]
+    ],
+    risks: [
+      "没签劳动合同：需先用工资流水、考勤、工作群等证明事实劳动关系，举证难度上升。",
+      "超过1年才主张：可能被认定超过仲裁时效，除非存在时效中断（催告、对方承诺）证据。",
+      "自行离职：若无法证明系被迫离职，可能影响经济补偿金主张。"
+    ],
+    actions: [
+      "整理工资流水与考勤，算出欠薪/加班费/补偿金的具体数额",
+      "用微信＋EMS各发一份书面催告（保留寄送凭证）",
+      "到国家企业信用信息公示系统打印对方工商登记信息",
+      "准备仲裁申请书，到履行地或单位所在地仲裁委立案",
+      "涉及工伤的，先走工伤认定，再谈赔偿"
+    ]
+  },
+  loan: {
+    cause: "民间借贷纠纷／不当得利纠纷",
+    relation: "你与借款人之间的借款合同关系。核心是：借贷合意 + 款项实际交付 + 是否约定利息与还款期限。",
+    paths: [
+      ["催收固定证据", "书面催告并保留送达凭证，既能施压也可中断诉讼时效。"],
+      ["调解/和解", "可通过人民调解委员会或律师函促成还款协议，必要时办理具有强制执行效力的债权文书公证。"],
+      ["支付令", "债权债务关系明确、无其他争议的，可向法院申请支付令，成本低、速度快；对方15日内不提异议即可申请执行。"],
+      ["诉讼（主路径）", "向被告住所地或合同履行地法院起诉，可一并主张利息与逾期利息。"],
+      ["财产保全", "担心对方转移财产的，起诉同时申请诉前/诉中保全（需提供担保）。"]
+    ],
+    limits: [
+      ["诉讼时效：3年", "自约定还款期限届满之日起3年；未约定还款期限的，自你首次要求还款并给予合理期限届满之日起算。"],
+      ["最长保护期：20年", "自权利受损之日起超过20年的，法院一般不予保护。"],
+      ["申请执行：2年", "自法律文书确定的履行期限最后一日起算。"]
+    ],
+    evidence: [
+      ["contract", "借条/借款合同（写明金额、日期、借款人签名）", true],
+      ["pay", "转账凭证（银行/微信/支付宝流水，能显示对方户名）", true],
+      ["chat", "对方承认借款、承诺还款、商讨利息的聊天记录", true],
+      ["ident", "借款人身份信息（姓名、身份证号、住址）", true],
+      ["record", "催收通话录音", false],
+      ["notice", "催告函及送达凭证（用于证明时效中断）", false]
+    ],
+    risks: [
+      "只有转账、没有借条：对方可能抗辩为「还款」「赠与」「货款」，需用聊天记录补证借贷合意。",
+      "现金交付无凭证：举证风险高，建议补签确认书或录音固定。",
+      "约定利息过高：超过法律保护上限的部分不受保护（按起诉时一年期LPR的4倍把握，具体以现行规定为准）。",
+      "超过3年未主张且无中断证据：可能丧失胜诉权。"
+    ],
+    actions: [
+      "核对并导出全部转账凭证，标注时间与金额",
+      "整理聊天记录（导出为连续截图或文件，不要只截片段）",
+      "补发书面催告，保留送达证据以中断时效",
+      "查明对方身份信息与财产线索（房产、车辆、公司股权）",
+      "评估是否先申请支付令或直接起诉并申请保全"
+    ]
+  },
+  contract: {
+    cause: "合同纠纷（买卖合同／承揽合同／服务合同／建设工程施工合同等）",
+    relation: "你与对方之间的合同关系。核心是：合同是否成立生效、谁先违约、违约造成的损失如何计算。",
+    paths: [
+      ["书面催告＋限期履行", "明确要求对方在合理期限内履行或整改，为后续解除与索赔固定依据。"],
+      ["解除并索赔", "对方迟延履行或有其他违约行为致使合同目的不能实现的，可通知解除并要求赔偿。"],
+      ["调解/行业投诉", "消费类可向12315投诉；装修、房产类可向行业协会或住建部门投诉。"],
+      ["仲裁或诉讼", "看合同是否约定仲裁条款：有约定则必须仲裁；无约定则可起诉。"],
+      ["证据保全", "对现场状况、聊天记录、通话内容及时固定（公证、时间戳或自行录像）。"]
+    ],
+    limits: [
+      ["诉讼时效：3年", "自知道或应当知道权利被侵害（通常为违约发生）之日起算。"],
+      ["异议期", "对标的物质量有异议的，应在约定或合理期限内提出，逾期可能视为接受。"],
+      ["除斥期间", "撤销权等形成权有短期限（一般1年），过期即消灭。"]
+    ],
+    evidence: [
+      ["contract", "合同、订单、报价单、补充协议", true],
+      ["pay", "付款凭证与发票", true],
+      ["chat", "磋商与催告的聊天记录、邮件", true],
+      ["record", "施工现场照片/录像、验收记录", true],
+      ["notice", "催告函、解除通知及送达凭证", true],
+      ["ident", "对方主体信息", true]
+    ],
+    risks: [
+      "只有口头约定：需用聊天记录、付款、履行行为证明合同内容与价款。",
+      "自己也有部分未履行：可能被主张双方违约，需先厘清履行顺序。",
+      "损失举证不足：主张损失需证明因果关系与具体数额，否则法院可能酌定或不予支持。",
+      "合同约定仲裁条款：不能直接起诉，须先仲裁。"
+    ],
+    actions: [
+      "通读合同，标出履行期限、违约条款、争议解决条款",
+      "按时间线整理履行与违约证据（附付款与沟通记录）",
+      "发一份限期履行的书面催告并保留送达凭证",
+      "测算实际损失（已付款、额外支出、可得利益）并保留票据",
+      "确认是诉讼还是仲裁，准备对应材料"
+    ]
+  },
+  traffic: {
+    cause: "机动车交通事故责任纠纷／人身损害赔偿纠纷",
+    relation: "侵权责任关系。核心是：事故责任划分、伤情与伤残等级、保险赔付范围。",
+    paths: [
+      ["报警定责", "由交警出具道路交通事故认定书，这是后续理赔与诉讼的核心依据。"],
+      ["保险理赔", "先走交强险，再走商业三者险；可直接向对方保险公司索赔（可将其列为共同被告）。"],
+      ["调解", "事故处理阶段可申请交警调解。"],
+      ["诉讼", "协商不成可起诉，将驾驶员、车主、保险公司一并列为被告。"],
+      ["伤残鉴定", "治疗终结后做伤残等级鉴定，这是计算残疾赔偿金的关键。"]
+    ],
+    limits: [
+      ["伤情鉴定/伤残鉴定", "一般在治疗终结后进行；过早鉴定可能不被采信。"],
+      ["诉讼时效：3年", "自事故发生（或治疗终结、伤残确定）之日起算。"],
+      ["保险索赔时效：2年", "自身商业保险索赔注意期限。"]
+    ],
+    evidence: [
+      ["report", "道路交通事故认定书", true],
+      ["medical", "病历、诊断证明、费用票据、出院小结", true],
+      ["pay", "医疗费、护理费、交通费票据", true],
+      ["record", "现场照片、行车记录仪、监控", true],
+      ["ident", "对方驾驶证、行驶证、保单信息", true],
+      ["judge", "已有调解书或判决书", false]
+    ],
+    risks: [
+      "未报警私了：责任与事实难以固定，后续索赔举证困难。",
+      "过早签署一次性赔偿协议：可能不足以覆盖后续治疗与伤残损失。",
+      "误工费、护理费无凭证：需劳动合同、工资流水、误工证明支撑。"
+    ],
+    actions: [
+      "确认事故认定书上的责任划分，不服可在规定期限内申请复核",
+      "整理全部医疗票据并按类别汇总",
+      "治疗终结后申请伤残等级鉴定",
+      "向保险公司索取理赔清单，核对赔付项目",
+      "将保险公司列为共同被告一并起诉"
+    ]
+  },
+  tort: {
+    cause: "侵权责任纠纷（人格权／财产损害／网络侵权等）",
+    relation: "侵权责任关系。核心是：加害行为、损害后果、因果关系、过错。",
+    paths: [
+      ["固定证据（最优先）", "网页内容立即公证或使用可信时间戳；聊天与录音及时备份。"],
+      ["要求停止侵害", "书面通知对方（及平台）删除、停止侵害；网络侵权可依据「通知—删除」规则要求平台处理。"],
+      ["报警", "涉及侮辱、诽谤、骚扰、隐私泄露且情节较重的，可报警。"],
+      ["诉讼", "请求停止侵害、消除影响、赔礼道歉、赔偿损失（含精神损害）。"]
+    ],
+    limits: [
+      ["诉讼时效：3年", "自知道权利被侵害之日起算。"],
+      ["网络侵权", "平台收到通知后未及时采取必要措施的，对扩大部分承担连带责任。"],
+      ["证据保全", "网络内容可能被随时删除，应在起诉前完成公证或时间戳固定。"]
+    ],
+    evidence: [
+      ["record", "侵权内容的截图/录像（含网址、时间、账号信息）", true],
+      ["chat", "对方承认、威胁或传播过程的记录", true],
+      ["ident", "侵权人身份信息或账号主体（必要时申请平台披露）", true],
+      ["medical", "因侵权造成的就诊记录（如名誉受损导致焦虑就诊）", false],
+      ["pay", "因侵权产生的支出票据（如公证费、鉴定费）", false]
+    ],
+    risks: [
+      "只有截图、没有公证：对方可能否认内容真实性。",
+      "言论涉及公共利益或真实事实：可能不构成侵权。",
+      "精神损害赔偿：需达到「严重后果」的程度，举证门槛较高。"
+    ],
+    actions: [
+      "立即对侵权内容做公证或可信时间戳固定",
+      "向对方与平台发送书面停止侵害通知",
+      "整理损害后果证据（就诊、误工、社会评价降低）",
+      "评估是否报警及是否提起民事诉讼"
+    ]
+  },
+  family: {
+    cause: "离婚纠纷／抚养权与抚养费纠纷／财产分割／继承纠纷",
+    relation: "婚姻家庭或继承法律关系。核心是：感情是否确已破裂、子女由谁抚养、共同财产范围与分割、遗产范围与继承顺序。",
+    paths: [
+      ["协议离婚", "双方就离婚、子女、财产达成一致的，到婚姻登记机关申请，需经离婚冷静期（30日）后申请发证。"],
+      ["诉讼离婚（主路径）", "向被告住所地法院起诉；第一次不判离的，6个月后可再次起诉。"],
+      ["财产保全", "担心对方转移财产的，起诉时申请保全。"],
+      ["继承纠纷", "先确认遗产范围（房产、存款、股权、债权），再按遗嘱或法定继承分割。"]
+    ],
+    limits: [
+      ["离婚冷静期：30日", "自婚姻登记机关收到离婚登记申请之日起30日内，任何一方可撤回；期满后30日内未申请发证视为撤回。"],
+      ["再次起诉：6个月", "判决不准离婚后，没有新情况、新理由，6个月内不得再起诉。"],
+      ["继承时效：3年", "继承权受侵害的诉讼时效3年，自知道或应当知道权利被侵害之日起算。"],
+      ["遗产分割请求", "不受诉讼时效限制（物权确认性质），但涉及债权的主张受3年限制。"]
+    ],
+    evidence: [
+      ["contract", "结婚证、户口簿、出生医学证明", true],
+      ["pay", "工资流水、银行账户、房产与车辆登记信息", true],
+      ["chat", "涉及出轨、家暴、感情破裂、抚养安排的聊天记录", true],
+      ["record", "家暴的报警记录、伤情照片、告诫书、录音", false],
+      ["notice", "对方出具的承诺书、协议、转账说明", false],
+      ["judge", "既往调解书、判决书", false]
+    ],
+    risks: [
+      "隐匿或转移财产：需通过保全与调查令措施及时处理。",
+      "家暴举证不足：仅有陈述通常不够，需报警记录、伤情鉴定、证人等形成链条。",
+      "房产归属复杂：婚前首付、婚后还贷、父母出资情形不同，结论差异很大。",
+      "涉及未成年人：以最有利于未成年人为原则，8周岁以上应尊重其真实意愿（具体做法以法院判断为准）。"
+    ],
+    actions: [
+      "整理财产清单（房产、车辆、存款、股权、保险）与权属证明",
+      "固定家暴或过错证据（报警、就医、证人）",
+      "梳理子女抚养现状（谁在照顾、居住与就学）",
+      "评估协商可能，必要时同步准备诉讼与保全"
+    ]
+  },
+  house: {
+    cause: "房屋买卖合同纠纷／房屋租赁合同纠纷",
+    relation: "房屋买卖或租赁合同关系。核心是：合同效力、履行状态、是否涉及中介与定金。",
+    paths: [
+      ["催告＋书面通知", "针对迟延交房、拒不网签、租金拖欠等，发书面催告并限定期限。"],
+      ["退定金/双倍返还", "收受定金一方违约的，可主张双倍返还定金（定金罚则）；支付方违约则可能丧失定金。"],
+      ["行政投诉", "中介违规可向住建部门或12345投诉。"],
+      ["诉讼", "请求继续履行、解除合同、赔偿损失或返还租金与押金。"]
+    ],
+    limits: [
+      ["诉讼时效：3年", "自违约或权利被侵害之日起算。"],
+      ["租赁优先购买权", "出租人出售房屋应在合理期限内通知承租人，承租人享有优先购买权。"],
+      ["押金返还", "合同终止后无违约的，出租人应返还押金；拖延可主张利息。"]
+    ],
+    evidence: [
+      ["contract", "房屋买卖合同/租赁合同、补充协议、定金收据", true],
+      ["pay", "付款凭证、中介费发票、租金与押金转账记录", true],
+      ["chat", "磋商与催告的聊天记录", true],
+      ["ident", "房产信息（产权人、是否抵押、是否查封）", true],
+      ["record", "房屋现状照片/视频、交房验收记录", false]
+    ],
+    risks: [
+      "房屋已被抵押或查封：可能导致合同无法履行，需查明权利状态。",
+      "仅口头约定买卖：举证困难，价格、付款与过户时间都需证据支撑。",
+      "「定金」写成了「订金」：法律性质不同，可能不适用定金罚则。",
+      "租赁未备案：不影响合同效力，但对抗第三人时可能不利。"
+    ],
+    actions: [
+      "调取不动产登记信息，确认抵押与查封状态",
+      "核对合同中定金、违约责任、交房与过户条款",
+      "发书面催告并保留送达凭证",
+      "整理全部付款凭证与沟通记录"
+    ]
+  },
+  company: {
+    cause: "股东资格确认／股权转让纠纷／公司决议纠纷／损害公司利益责任纠纷",
+    relation: "公司法上的组织与投资关系。核心是：出资是否到位、股权权属、决议程序是否合法、是否存在损害行为。",
+    paths: [
+      ["查阅公司资料", "股东有权查阅章程、股东会决议、财务会计报告，必要时请求查阅会计账簿。"],
+      ["内部救济", "要求补正决议程序、召开股东会、纠正损害行为。"],
+      ["诉讼", "股东资格确认、请求撤销决议（60日内）、请求分配利润、损害股东利益赔偿等。"],
+      ["刑事路径", "涉及职务侵占、挪用资金且数额较大的，可向公安机关报案。"]
+    ],
+    limits: [
+      ["撤销决议：60日", "自决议作出之日起60日内请求法院撤销（以现行公司法规定为准）。"],
+      ["诉讼时效：3年", "一般债权类请求自知道或应当知道之日起算。"],
+      ["出资催缴", "公司可催缴未实缴出资，逾期可能丧失相应权利。"]
+    ],
+    evidence: [
+      ["contract", "出资协议、股权转让协议、公司章程", true],
+      ["pay", "出资转账凭证、验资或评估材料", true],
+      ["ident", "工商登记信息、股东名册", true],
+      ["notice", "股东会决议、通知、往来函件", true],
+      ["chat", "内部沟通记录", false]
+    ],
+    risks: [
+      "只有口头出资、无转账凭证：股东资格可能不被确认。",
+      "决议程序瑕疵：需在法定期限内主张，逾期可能无法撤销。",
+      "一人公司财产混同：可能适用法人人格否认。"
+    ],
+    actions: [
+      "打印工商档案与章程，核对股东与出资记载",
+      "整理出资凭证与股权转让链条",
+      "梳理决议程序瑕疵与时间点（是否在60日内）",
+      "评估是否需要保全或报案"
+    ]
+  },
+  criminal: {
+    cause: "刑事报案／涉案应对",
+    relation: "刑事法律关系。核心是：是否达到立案标准、证据链是否完整、涉案人的角色（被害人或被调查对象）。",
+    paths: [
+      ["报案/控告", "到案发地公安机关报案，索取受案回执；不予立案的，可申请复议或向检察院申请立案监督。"],
+      ["证据固定", "转账记录、聊天记录、通话录音、监控等应及时固定，避免被覆盖。"],
+      ["聘请律师（强烈建议）", "若是被调查对象，第一时间委托律师介入，避免不当陈述。"],
+      ["附带民事诉讼", "作为被害人，可在刑事诉讼中主张物质损失赔偿（一般不含精神损害）。"]
+    ],
+    limits: [
+      ["追诉时效", "视法定最高刑而定：最高不满5年→5年；5年以上不满10年→10年；10年以上→15年；无期或死刑→20年（报请可延长）。"],
+      ["报案后", "公安机关应在规定期限内决定是否立案，不立案的应书面通知。"],
+      ["立案监督", "对不立案不服，可向同级检察院申请立案监督。"]
+    ],
+    evidence: [
+      ["pay", "资金流向与转账凭证", true],
+      ["chat", "对方的欺诈/威胁/联络记录", true],
+      ["record", "录音录像、监控、通话清单", true],
+      ["ident", "对方身份信息与联系方式", true],
+      ["notice", "受案回执、不予立案通知书", false],
+      ["medical", "伤情鉴定（涉人身伤害）", false]
+    ],
+    risks: [
+      "仅凭陈述难以立案：需提供初步证据指向具体犯罪事实。",
+      "报警前未固定证据：财物或记录可能被销毁。",
+      "被调查对象：若自行与对方沟通或解释，可能形成不利陈述。",
+      "追诉时效：久未处理可能导致无法追诉。"
+    ],
+    actions: [
+      "立即固定全部电子证据（导出、公证或时间戳）",
+      "整理被害人损失清单与资金流向图",
+      "到案发地或居住地公安机关报案并索取回执",
+      "不予立案时申请复议或申请检察院立案监督",
+      "被调查情形下，先咨询律师再决定如何陈述"
+    ]
+  },
+  admin: {
+    cause: "行政处罚纠纷／行政复议／政府信息公开",
+    relation: "行政法律关系。核心是：行政行为的主体、权限、程序与事实依据是否合法。",
+    paths: [
+      ["陈述申辩", "收到处罚事先告知书时，在期限内提交书面陈述申辩，这是最容易被忽略的救济窗口。"],
+      ["行政复议", "向作出机关的上一级机关或本级政府申请复议，多数情形可先复议。"],
+      ["行政诉讼", "对复议决定不服或直接起诉（部分案件复议前置）。"],
+      ["政府信息公开", "申请公开相关决定依据与材料，为维权取得证据。"]
+    ],
+    limits: [
+      ["行政复议：60日", "自知道该行政行为之日起60日内提出，法律规定超过60日的除外。"],
+      ["行政诉讼：6个月", "自知道或应当知道作出行政行为之日起6个月内提出。"],
+      ["复议后起诉：15日", "对复议决定不服，自收到复议决定书之日起15日内起诉。"],
+      ["信息公开答复：20个工作日", "可延长20个工作日。"]
+    ],
+    evidence: [
+      ["govdoc", "处罚决定书/告知书/许可答复及送达凭证", true],
+      ["notice", "你提交的申辩材料及受理凭证", true],
+      ["record", "执法过程录音录像（如有）", false],
+      ["ident", "执法主体与执法人员的身份信息", false],
+      ["chat", "与执法人员的沟通记录", false]
+    ],
+    risks: [
+      "错过60日/6个月期限：可能直接丧失救济机会。",
+      "未在告知阶段提出申辩：后续举证难度上升。",
+      "对「程序违法」主张需具体：如未告知听证权、未说明理由、未送达。"
+    ],
+    actions: [
+      "核对决定书上的救济途径与期限，标出最后一天",
+      "在期限内提交书面陈述申辩或复议申请",
+      "调取执法依据与公开信息，形成证据",
+      "评估是否申请听证、复议或直接起诉"
+    ]
+  },
+  other: {
+    cause: "视具体事实确定",
+    relation: "需要先厘清你与对方之间的法律关系（合同、侵权、身份关系或行政关系），法律关系不同，救济路径与举证要求差异很大。",
+    paths: [
+      ["梳理事实与法律关系", "把时间线与关键证据整理成一页纸，先判断是民事、行政还是刑事问题。"],
+      ["协商/调解", "多数纠纷可以先通过协商或人民调解解决，成本最低。"],
+      ["专业咨询", "案情复杂或金额较大时，建议先做一次律师面询，明确案由与胜诉可能性。"],
+      ["诉讼/仲裁/报案", "根据法律关系选择相应途径。"]
+    ],
+    limits: [
+      ["民事诉讼时效：3年", "自权利受侵害之日起算。"],
+      ["行政诉讼：6个月", "自知道行政行为之日起算。"],
+      ["行政复议：60日", "自知道行政行为之日起算。"]
+    ],
+    evidence: [
+      ["contract", "书面文件（合同、协议、收据）", true],
+      ["pay", "资金往来凭证", true],
+      ["chat", "沟通记录（微信、短信、邮件）", true],
+      ["ident", "对方身份信息", true],
+      ["notice", "对方出具的通知或承诺", false]
+    ],
+    risks: [
+      "法律关系判断错误：会导致选错程序（如应仲裁却起诉），浪费时间与费用。",
+      "证据零散：需要按时间线整理成证据清单。",
+      "时限：多数权利都有期限，拖延会直接造成损失。"
+    ],
+    actions: [
+      "把事实按时间顺序写成时间线",
+      "列出全部证据并标注缺失项",
+      "确认对方身份信息与财产线索",
+      "明确你的诉求与可接受的最低方案",
+      "咨询执业律师确认案由与路径"
+    ]
+  }
+};
+
+/* ============ 页面逻辑 ============ */
+var $ = function(id){ return document.getElementById(id) };
+var esc = function(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}) };
+var selectedEvidence = {};
+
+function initTypeSelect(){
+  var sel = $("ctype");
+  TYPES.forEach(function(t){
+    var o = document.createElement("option");
+    o.value = t.k; o.textContent = t.n; sel.appendChild(o);
+  });
+}
+function initEvidence(){
+  var box = $("evbox");
+  EVIDENCE.forEach(function(e){
+    var d = document.createElement("div");
+    d.className = "chk";
+    d.innerHTML = '<input type="checkbox" id="ev_'+e.k+'"><label for="ev_'+e.k+'" style="margin:0">'+esc(e.n)+'</label>';
+    box.appendChild(d);
+    $("ev_"+e.k).addEventListener("change", function(){ selectedEvidence[e.k] = this.checked; save(); });
+  });
+}
+function loadLocal(){
+  try{
+    var s = localStorage.getItem("legal_consult_draft");
+    if(!s) return;
+    var d = JSON.parse(s);
+    ["who","ctype","amount","story","when","written","opp","stage","want","wantmore","evother"].forEach(function(k){
+      if(d[k]!=null && $(k)) $(k).value = d[k];
+    });
+    (d.ev||[]).forEach(function(k){ if($("ev_"+k)){ $("ev_"+k).checked = true; selectedEvidence[k]=true; } });
+  }catch(e){}
+}
+function save(){
+  try{
+    var d = {};
+    ["who","ctype","amount","story","when","written","opp","stage","want","wantmore","evother"].forEach(function(k){
+      d[k] = $(k) ? $(k).value : "";
+    });
+    d.ev = Object.keys(selectedEvidence).filter(function(k){ return selectedEvidence[k] });
+    d.ts = Date.now();
+    localStorage.setItem("legal_consult_draft", JSON.stringify(d));
+  }catch(e){}
+}
+function daysBetween(a,b){ return Math.round((b-a)/86400000) }
+
+function report(){
+  var t = $("ctype").value;
+  var kb = KB[t] || KB.other;
+  var tn = (TYPES.filter(function(x){return x.k===t})[0]||{}).n || "其他";
+  var story = $("story").value.trim();
+  var when = $("when").value;
+  var amount = $("amount").value;
+  var stage = $("stage").value;
+  var want = $("want").value;
+  var written = $("written").value;
+  var opp = $("opp").value;
+  var who = $("who").value;
+  var now = new Date();
+  var html = [];
+
+  html.push('<div class="card report" id="report">');
+  html.push('<h2 class="noprint">分析结果</h2>');
+  html.push('<h3>一、案件类型与法律关系</h3>');
+  html.push('<table><tr><th>案件类型</th><td>'+esc(tn)+'</td></tr>');
+  html.push('<tr><th>建议案由</th><td>'+esc(kb.cause)+'</td></tr>');
+  html.push('<tr><th>法律关系</th><td>'+esc(kb.relation)+'</td></tr>');
+  html.push('<tr><th>你的身份</th><td>'+esc(who)+'　对方：'+esc(opp)+'</td></tr>');
+  if(amount) html.push('<tr><th>争议金额</th><td>'+Number(amount).toLocaleString()+' 元</td></tr>');
+  html.push('<tr><th>目前进展</th><td>'+esc(stage)+'</td></tr></table>');
+
+  html.push('<h3>二、你陈述的事实要点</h3>');
+  if(story){
+    html.push('<p style="white-space:pre-wrap">'+esc(story)+'</p>');
+  }else{
+    html.push('<p class="miss">未填写事情经过，分析将较为空泛。</p>');
+  }
+
+  html.push('<h3>三、可选救济路径</h3><ul>');
+  kb.paths.forEach(function(p){ html.push('<li><b>'+esc(p[0])+'</b>：'+esc(p[1])+'</li>') });
+  html.push('</ul>');
+
+  html.push('<h3>四、期限与时效提示</h3><table>');
+  kb.limits.forEach(function(l){ html.push('<tr><th>'+esc(l[0])+'</th><td>'+esc(l[1])+'</td></tr>') });
+  html.push('</table>');
+
+  if(when){
+    var start = new Date(when + "T00:00:00");
+    var elapsed = daysBetween(start, now);
+    var years = (elapsed/365).toFixed(1);
+    var warn = "";
+    if(t==="admin" && elapsed>180) warn = "距该行政行为已 " + elapsed + " 天，行政诉讼6个月期限可能已过，请立即核实是否仍在期限内或存在中断情形。";
+    else if(t==="labor" && elapsed>365) warn = "距今已 " + elapsed + " 天（约 " + years + " 年），劳动仲裁1年时效可能已过，请核查是否存在时效中断的证据（催告、对方承诺等）。";
+    else if(elapsed>1095) warn = "距今已 " + elapsed + " 天（约 " + years + " 年），民事诉讼3年时效可能已过，请核查是否存在时效中断或中止情形。";
+    else if(elapsed>730) warn = "距今已 " + elapsed + " 天（约 " + years + " 年），接近民事诉讼时效（3年），建议尽快主张权利并保留证据。";
+    if(warn) html.push('<div class="warn">⚠ '+esc(warn)+'</div>');
+    else html.push('<p>按你填写的时间，距现在 '+elapsed+' 天，尚未触及常见时效上限；仍建议尽快主张权利（发函、起诉等）以中断时效。</p>');
+  }
+
+  html.push('<h3>五、证据清单（必备项核对）</h3><table>');
+  html.push('<tr><th>证据</th><td><b>必备</b></td></tr>');
+  var missing = [];
+  kb.evidence.forEach(function(e){
+    var label = (EVIDENCE.filter(function(x){return x.k===e[0]})[0]||{}).n || e[0];
+    var has = !!selectedEvidence[e[0]];
+    if(e[2] && !has) missing.push(label);
+    html.push('<tr><th>'+esc(label)+'</th><td>'+(has?'<span class="ok">✅ 已有</span>':'<span class="'+(e[2]?"miss":"")+'">'+(e[2]?'❌ 缺失（必备）':'— 建议补强')+'</span>')+'<br/><span class="hint">'+esc(e[1])+'</span></td></tr>');
+  });
+  html.push('</table>');
+  if(missing.length) html.push('<div class="warn">⚠ 缺少必备证据：'+esc(missing.join("、"))+'。建议优先补齐，否则立案与胜诉难度会明显上升。</div>');
+  var other = $("evother").value.trim();
+  if(other) html.push('<p><b>补充说明：</b>'+esc(other)+'</p>');
+
+  html.push('<h3>六、风险与不利因素</h3><ul>');
+  kb.risks.forEach(function(r){ html.push('<li>'+esc(r)+'</li>') });
+  html.push('</ul>');
+
+  html.push('<h3>七、下一步行动清单</h3><ul>');
+  kb.actions.forEach(function(a){ html.push('<li>☐ '+esc(a)+'</li>') });
+  if(stage!=="还没处理") html.push('<li>☐ 因你已进入「'+esc(stage)+'」阶段，请核对最近一次程序文书上的期限，避免错过上诉/复议期。</li>');
+  if(written==="是") html.push('<li>☐ 你已收到书面文书，请仔细核对救济途径与期限（这是最容易错过的关键点）。</li>');
+  html.push('<li>☐ 你的诉求是「'+esc(want)+'」，据此整理请求项与金额计算依据。</li>');
+  html.push('</ul>');
+
+  html.push('<h3>八、提示</h3>');
+  html.push('<p>以上为按常见规则生成的参考框架，<b>不构成法律意见</b>。事实认定与证据采信由办案机关判断；法律与司法解释会变化，条文适用请以现行规定为准。建议携带本清单咨询执业律师，可显著提高沟通效率。</p>');
+
+  html.push('<div class="noprint"><div class="btn-row"><button class="btn" id="dl">导出为文本文件</button><button class="btn" id="pr">打印 / 存为PDF</button></div></div>');
+  html.push('</div>');
+
+  var host = $("result");
+  host.innerHTML = html.join("");
+  host.scrollIntoView({behavior:"smooth"});
+
+  $("pr").onclick = function(){ window.print() };
+  $("dl").onclick = function(){ download(host.innerText) };
+  try{ localStorage.setItem("legal_consult_last_report", host.innerText) }catch(e){}
+}
+
+function download(text){
+  var blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "法律咨询参考分析-" + new Date().toISOString().slice(0,10) + ".txt";
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href) }, 2000);
+}
+
+$("go").onclick = function(){
+  if(!$("agree").checked){ alert("请先阅读并勾选免责说明"); return; }
+  if(!$("story").value.trim()){ alert("请至少填写「事情经过」"); return; }
+  if(!$("when").value){ if(!confirm("未填写纠纷时间，将无法给出时效提示。仍要继续吗？")) return; }
+  save();
+  report();
+};
+$("clear").onclick = function(){
+  if(!confirm("确定清空全部填写内容？")) return;
+  localStorage.removeItem("legal_consult_draft");
+  localStorage.removeItem("legal_consult_last_report");
+  location.reload();
+};
+["who","ctype","amount","story","when","written","opp","stage","want","wantmore","evother"].forEach(function(k){
+  var el = $(k); if(el) el.addEventListener("change", save);
+  if(el && el.tagName==="TEXTAREA") el.addEventListener("blur", save);
+});
+
+initTypeSelect(); initEvidence(); loadLocal();
+</script>
+</body>
+</html>
